@@ -15,15 +15,18 @@ rm(list = objects())
 # path <- "W:/Bureau/S4_ENSAE/STL"     # Xavier - Ordinateur ENSAE
 path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"    # Xavier - Ordinateur perso
 setwd(path) # Definit l'espace de travail
-donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Période", "Indice", "Code"))
+donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Periode", "Indice", "Code"))
 
 # On supprime les trois premieres lignes inutiles
 donnees_choco = donnees_choco[-c(1,2,3), ]
 
 # On vérifie que la colonne Code ne prend que la valeur "A" et que donc l'ensemble des valeurs sont normales
 if(any(donnees_choco["Code"] != "A") == F){
-  donnees_choco = subset(donnees_choco, select = c("Période", "Indice"))
+  donnees_choco = subset(donnees_choco, select = c("Periode", "Indice"))
 }
+
+# On transforme la colonne Indice en valeurs numériques
+donnees_choco["Indice"] = as.numeric(unlist(donnees_choco["Indice"]))
 
 ```
 
@@ -35,5 +38,6 @@ if(any(donnees_choco["Code"] != "A") == F){
 
 
 ```{r}
-plot(donnees_choco["Indice"])
+plot(x = 1:length(donnees_choco$Indice), y = donnees_choco$Indice, main = "Indice de production (1990-2023)", xlab = "Mois", ylab = "Valeur mensuelle de l'indice")
+
 ```
