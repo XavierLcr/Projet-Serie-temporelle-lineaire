@@ -1,0 +1,39 @@
+---
+title: "Production industrielle mensuelle de glaces et sorbets (1990-2023)"
+author: "ANDRU Kilian - LACOUR Xavier"
+date: "Mardi 9 mai 2023"
+output: html_notebook
+---
+### ANDRU Kilian - LACOUR Xavier
+
+
+
+### Téléchargement et formatage du fichier
+
+```{r}
+rm(list = objects())
+# path <- "W:/Bureau/S4_ENSAE/STL"     # Xavier - Ordinateur ENSAE
+path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"    # Xavier - Ordinateur perso
+setwd(path) # Definit l'espace de travail
+donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Période", "Indice", "Code"))
+
+# On supprime les trois premieres lignes inutiles
+donnees_choco = donnees_choco[-c(1,2,3), ]
+
+# On vérifie que la colonne Code ne prend que la valeur "A" et que donc l'ensemble des valeurs sont normales
+if(any(donnees_choco["Code"] != "A") == F){
+  donnees_choco = subset(donnees_choco, select = c("Période", "Indice"))
+}
+
+```
+
+
+## Partie I
+
+### Question 1
+
+
+
+```{r}
+plot(donnees_choco["Indice"])
+```
