@@ -8,16 +8,6 @@ output: html_notebook
 
 
 
----
-title: "Production industrielle mensuelle de glaces et sorbets (1990-2023)"
-author: "ANDRU Kilian - LACOUR Xavier"
-date: "Mardi 9 mai 2023"
-output: html_notebook
----
-### ANDRU Kilian - LACOUR Xavier
-
-
-
 ### Téléchargement et formatage du fichier
 
 ```{r}
