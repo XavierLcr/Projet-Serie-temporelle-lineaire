@@ -8,6 +8,16 @@ output: html_notebook
 
 
 
+---
+title: "Production industrielle mensuelle de glaces et sorbets (1990-2023)"
+author: "ANDRU Kilian - LACOUR Xavier"
+date: "Mardi 9 mai 2023"
+output: html_notebook
+---
+### ANDRU Kilian - LACOUR Xavier
+
+
+
 ### Téléchargement et formatage du fichier
 
 ```{r}
@@ -27,6 +37,12 @@ if(any(donnees_choco["Code"] != "A") == F){
 
 # On transforme la colonne Indice en valeurs numériques
 donnees_choco["Indice"] = as.numeric(unlist(donnees_choco["Indice"]))
+```
+
+```{r}
+# Possibilité d'enlever les données d'après mars 2020 pour ne pas subir les perturbation du Covid-19
+covid_garde = FALSE
+if(covid_garde == FALSE){donnees_choco = donnees_choco[-c(363:length(donnees_choco$Indice)), ]}
 
 ```
 
@@ -35,9 +51,28 @@ donnees_choco["Indice"] = as.numeric(unlist(donnees_choco["Indice"]))
 
 ### Question 1
 
+Voir rapport de projet.
 
+### Question 2
+
+```{r}
+acf(donnees_choco$Indice)
+
+```
+
+### Question 3
 
 ```{r}
 plot(x = 1:length(donnees_choco$Indice), y = donnees_choco$Indice, main = "Indice de production (1990-2023)", xlab = "Mois", ylab = "Valeur mensuelle de l'indice")
+
+```
+
+
+```{r}
+
+
+```
+
+```{r}
 
 ```
