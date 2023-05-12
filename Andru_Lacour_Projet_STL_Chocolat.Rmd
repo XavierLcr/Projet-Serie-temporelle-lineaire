@@ -18,7 +18,7 @@ rm(list = objects())
 # path <- "W:/Bureau/S4_ENSAE/STL"     
 
 # Xavier - Ordinateur perso
-# path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"  
+path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"  
 
 # Kilian - Ordinateur perso
 #path <- "C:/Users/Kilian/Desktop/ENSAE/S4/LTS/Projet---S-rie-temporelle-lin-aire"
@@ -57,8 +57,8 @@ Convertion en format zoo (Si besoin : "install.packages('zoo')" et "install.pack
 require(zoo)
 require(tseries)
 
-xm <- zoo(donnees_choco["Indice"])
-T <- length(xm.source)
+choco <- zoo(donnees_choco["Indice"])
+T <- length(choco)
 ```
 
 ## Partie I
@@ -69,22 +69,58 @@ Voir rapport de projet.
 
 ### Question 2
 
+Vérifions qu'il n'y a pas de tendance linéaire.
+
 ```{r}
-acf(donnees_choco$Indice)
+library(dplyr)
+donnees_choco_reg <-  select(donnees_choco, "Indice")
+donnees_choco_reg["temps"] <-  0:(T-1)
+summary(lm(Indice~., data = donnees_choco_reg))
+```
+
+
+
+```{r}
+acf(choco)
+pacf(choco)
+```
+
+On remarque que la différence la plus présente est de 1. Donc on différentie à l'ordre 1.
+
+```{r}
+choco2 = diff(choco, 1)
+acf(choco2)
 
 ```
+
+```{r}
+choco3 = diff(choco2, 23)
+acf(choco3)
+
+```
+
+
 
 ### Question 3
 
 ```{r}
-plot(x = 1:length(donnees_choco$Indice), y = donnees_choco$Indice, main = "Indice de production (1990-2023)", xlab = "Mois", ylab = "Valeur mensuelle de l'indice")
+# Indice originel
+plot(choco, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", main = "Evolution de l'indice de production originel depuis 1990")
+
+# Indice stationnarisé
+
+plot(choco2, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", main = "Evolution de l'indice de production stationnarisé depuis 1990")
 
 ```
 
+### Question 4
 
 ```{r}
+pp.test(choco)
+pp.test(choco2)
 
-
+kpss.test(choco2, null = "Level")
+kpss.test(choco)
 ```
 
 ```{r}
