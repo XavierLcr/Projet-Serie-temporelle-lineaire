@@ -10,30 +10,83 @@ output: html_notebook
 
 ### Téléchargement et formatage du fichier
 
+Définition de l'espace de travail puis téléchargement de la série.
 ```{r}
 rm(list = objects())
-# path <- "W:/Bureau/S4_ENSAE/STL"     # Xavier - Ordinateur ENSAE
-path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"    # Xavier - Ordinateur perso
-setwd(path) # Definit l'espace de travail
-donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Période", "Indice", "Code"))
 
-# On supprime les trois premieres lignes inutiles
-donnees_choco = donnees_choco[-c(1,2,3), ]
+# Xavier - Ordinateur ENSAE
+# path <- "W:/Bureau/S4_ENSAE/STL"     
 
-# On vérifie que la colonne Code ne prend que la valeur "A" et que donc l'ensemble des valeurs sont normales
-if(any(donnees_choco["Code"] != "A") == F){
-  donnees_choco = subset(donnees_choco, select = c("Période", "Indice"))
-}
+# Xavier - Ordinateur perso
+# path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"  
 
+# Kilian - Ordinateur perso
+#path <- "C:/Users/Kilian/Desktop/ENSAE/S4/LTS/Projet---S-rie-temporelle-lin-aire"
+
+setwd(path)
+
+library(readr)
+donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Periode", "Indice", "Code"))
 ```
 
+On supprime les trois premieres lignes inutiles.
+```{r}
+donnees_choco = donnees_choco[-c(1,2,3), ]
+```
+
+On vérifie que la colonne Code ne prend que la valeur "A" et que donc l'ensemble des valeurs sont normales
+```{r}
+if(any(donnees_choco["Code"] != "A") == F){
+  donnees_choco = subset(donnees_choco, select = c("Periode", "Indice"))
+}
+```
+
+On transforme la colonne Indice en valeurs numériques
+```{r}
+donnees_choco["Indice"] = as.numeric(unlist(donnees_choco["Indice"]))
+```
+
+Possibilité d'enlever les données d'après mars 2020 pour ne pas subir les perturbation du Covid-19 (On enlève si covid_garde = FALSE)
+```{r}
+covid_garde = FALSE
+if(covid_garde == FALSE){donnees_choco = donnees_choco[-c(363:length(donnees_choco$Indice)), ]}
+```
+
+Convertion en format zoo (Si besoin : "install.packages('zoo')" et "install.packages('tseries')")
+```{r}
+require(zoo)
+require(tseries)
+
+xm <- zoo(donnees_choco["Indice"])
+T <- length(xm.source)
+```
 
 ## Partie I
 
 ### Question 1
 
+Voir rapport de projet.
+
+### Question 2
+
+```{r}
+acf(donnees_choco$Indice)
+
+```
+
+### Question 3
+
+```{r}
+plot(x = 1:length(donnees_choco$Indice), y = donnees_choco$Indice, main = "Indice de production (1990-2023)", xlab = "Mois", ylab = "Valeur mensuelle de l'indice")
+
+```
 
 
 ```{r}
-plot(donnees_choco["Indice"])
+
+
+```
+
+```{r}
+
 ```
