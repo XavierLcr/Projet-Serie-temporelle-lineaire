@@ -2,7 +2,9 @@
 title: "Production industrielle mensuelle de glaces et sorbets (1990-2023)"
 author: "ANDRU Kilian - LACOUR Xavier"
 date: "Mardi 9 mai 2023"
-output: html_notebook
+output:
+  html_notebook: default
+  pdf_document: default
 ---
 ### ANDRU Kilian - LACOUR Xavier
 
@@ -90,15 +92,29 @@ On remarque que la différence la plus présente est de 1. Donc on différentie 
 ```{r}
 choco2 = diff(choco, 1)
 acf(choco2)
+pacf(choco2)
 
 ```
 
 ```{r}
-choco3 = diff(choco2, 23)
-acf(choco3)
+pp.test(choco)
+pp.test(choco2)
+
+kpss.test(choco2, null = "Level")
+kpss.test(choco)
+
+
 
 ```
-
+```{r}
+Qtests <- function(series, k, fitdf=0) {
+  pvals <- apply(matrix(1:k), 1, FUN=function(l) {
+    pval <- if (l<=fitdf) NA else Box.test(series, lag=l, type="Ljung-Box", fitdf=fitdf)$p.value
+    return(c("lag"=l,"pval"=pval))
+  })
+  return(t(pvals))
+}
+```
 
 
 ### Question 3
@@ -116,13 +132,106 @@ plot(choco2, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'
 ### Question 4
 
 ```{r}
-pp.test(choco)
-pp.test(choco2)
-
-kpss.test(choco2, null = "Level")
-kpss.test(choco)
+acf(choco2)
+pacf(choco2)
 ```
+On garde les ordres maximuaux $p^* = 3$ et $q^* = 2$.
+Testons les combinaisons $(p,q)$ où $ 0 \leq p \leq p^* $ et $ 0 \leq q \leq q^* $.
 
 ```{r}
+p_etoile = 3
+q_etoile = 2
+
+pqs <- expand.grid(0:p_etoile,0:q_etoile) # Combinaisons possibles de p<=p* et q<=q*
+mat <- matrix(NA, nrow=p_etoile+1, ncol=q_etoile+1)
+rownames(mat) <- paste0("p=",0:p_etoile) # Renomme les lignes
+colnames(mat) <- paste0("q=",0:q_etoile) # Renomme les colonnes
+AICs <- mat # Matrice ou assigner les AIC
+BICs <- mat # Matrice ou assigner les BIC
+for (row in 1:dim(pqs)[1]){
+  p <- pqs[row,1]
+  q <- pqs[row,2]
+  estim <- try(arima(choco2,c(p, 0, q), include.mean=F)) # Tente d'estimer l'ARMA
+  AICs[p+1,q+1] <- if (class(estim)=="try-error") NA else estim$aic
+  BICs[p+1,q+1] <- if (class(estim)=="try-error") NA else BIC(estim)
+}
+```
+
+On regarde quelles valeurs de $(p,q)$ minimisent l'AIC et le BIC.
+
+```{r}
+AICs == min(AICs)
+BICs == min(BICs)
+```
+On garde donc les modèles ARMA(1, 2) et ARMA(0, 1).
+
+```{r}
+arima102 <- arima(choco2,c(1,0,2),include.mean=F)
+arima001 <- arima(choco2,c(0,0,1),include.mean=F)
+```
+
+On vérifie que les deux modèles sont bien ajustés.
+
+```{r}
+arima102
+arima001
+```
+Pour vérifier cela, on regarde si AR et le MA le plus grand de chaque modèle est significatif. Pour cela, on regarde si la valeur absolue du coefficient divisée par l'écart-type est plus grande que 1.96 (ce qui correspond au seuil de 5%) : $\frac{|Coeff|}{se(Coeff)} \ge 1.96 $.
+
+
+Concernant l'ARMA(1, 2), AR(1) et MA(2) sont tous les deux significatifs car $\frac{0.9139}{0.0342} \simeq 26.72 \ge 1.96 $ et $\frac{0.6453}{0.0649} \simeq 9.94 \ge 1.96 $.Donc le modèle est bien ajusté.
+
+L'ARMA(0, 1) ne prend en compte que que MA(1) donc on va regarder ce coefficient seulement. Or,  $\frac{|-0.7322|}{0.0447} \simeq 16.38 \ge 1.96 $. Donc l'ARMA(0, 1) est bien ajusté.
+
+Nous allons maintenant vérifier si ces modèles sont susceptibles de présenter de l'autocorrélation (On prend $fitdf = p+q$).
+
+```{r}
+#install.packages("fUnitRoots")
+#require("fUnitRoots")
+```
+
+Pour l'ARMA(1, 2) :
+```{r}
+Qtests(arima102$residuals,20,fitdf=3)
+```
+On ne rejette pas $H_0$ et l'absence de corrélation.Donc l'ARMA(1, 2) paraît valide.
+
+Pour l'ARMA(0, 1) :
+```{r}
+Qtests(arima001$residuals,20,fitdf=1)
+```
+
+On ne peut pas rejeter l'absence de corrélation ici non plus donc l'ARMA(0, 1) semble valide.
+
+Départageons les deux modèles en regardant lequel des deux est le plus efficace.
+
+```{r}
+adj_r2 <- function(model){
+  ss_res <- sum(model$residuals^2)
+  ss_tot <- sum(choco2[-c(1:max(p,q))]^2)
+  p <- model$arma[1]
+  q <- model$arma[2]
+  n <- model$nobs-max(p,q)
+  adj_r2 <- 1-(ss_res/(n-p-q-1))/(ss_tot/(n-1))
+  return(adj_r2)
+}
+adj_r2(arima102)
+adj_r2(arima001)
 
 ```
+
+L'ARMA(1, 2) a le meilleur R² ajusté, c'est donc celui que nous sélectionnons.
+
+### Question 5
+
+On peut vérifier pour être sur que l'ARIMA(1, 1, 2) est meilleur que l'ARIMA(0, 1, 1).
+
+```{r}
+arima112 <- arima(choco,c(1,1,2),include.mean=F)
+arima011 <- arima(choco,c(0,1,1),include.mean=F)
+
+adj_r2(arima112)
+adj_r2(arima011)
+```
+
+### Question 6
