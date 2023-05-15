@@ -96,16 +96,19 @@ pacf(choco2)
 
 ```
 
+Nous allons effectuer trois tests de stationnarité :
 ```{r}
-pp.test(choco)
+# Test de Phillips-Perron
 pp.test(choco2)
 
+# Test de Dickey-Fuller augmenté
+adf.test(choco2)
+
+# Test KPSS
 kpss.test(choco2, null = "Level")
-kpss.test(choco)
-
-
-
 ```
+Les trois tests donnent la série stationnaire.
+
 ```{r}
 Qtests <- function(series, k, fitdf=0) {
   pvals <- apply(matrix(1:k), 1, FUN=function(l) {
