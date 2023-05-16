@@ -3,10 +3,9 @@ title: "Production industrielle mensuelle de glaces et sorbets (1990-2023)"
 author: "ANDRU Kilian - LACOUR Xavier"
 date: "Mardi 16 mai 2023"
 output:
-  html_notebook: default
   pdf_document: default
+  html_notebook: default
 ---
-### ANDRU Kilian - LACOUR Xavier
 
 
 
@@ -139,7 +138,7 @@ acf(choco2)
 pacf(choco2)
 ```
 On garde les ordres maximuaux $p^* = 3$ et $q^* = 2$.
-Testons les combinaisons $(p,q)$ où $ 0 \leq p \leq p^* $ et $ 0 \leq q \leq q^* $.
+Testons les combinaisons $(p,q)$ où $0 \leq p \leq p^*$ et $0 \leq q \leq q^*$.
 
 ```{r}
 p_etoile = 3
@@ -179,12 +178,12 @@ On vérifie que les deux modèles sont bien ajustés.
 arima102
 arima001
 ```
-Pour vérifier cela, on regarde si AR et le MA le plus grand de chaque modèle est significatif. Pour cela, on regarde si la valeur absolue du coefficient divisée par l'écart-type est plus grande que 1.96 (ce qui correspond au seuil de 5%) : $\frac{|Coeff|}{se(Coeff)} \ge 1.96 $.
+Pour vérifier cela, on regarde si AR et le MA le plus grand de chaque modèle est significatif. Pour cela, on regarde si la valeur absolue du coefficient divisée par l'écart-type est plus grande que 1.96 (ce qui correspond au seuil de 5%) : $\frac{|Coeff|}{se(Coeff)} \ge 1.96$.
 
 
-Concernant l'ARMA(1, 2), AR(1) et MA(2) sont tous les deux significatifs car $\frac{0.9139}{0.0342} \simeq 26.72 \ge 1.96 $ et $\frac{0.6453}{0.0649} \simeq 9.94 \ge 1.96 $.Donc le modèle est bien ajusté.
+Concernant l'ARMA(1, 2), AR(1) et MA(2) sont tous les deux significatifs car $\frac{0.9139}{0.0342} \simeq 26.72 \ge 1.96$ et $\frac{0.6453}{0.0649} \simeq 9.94 \ge 1.96$.Donc le modèle est bien ajusté.
 
-L'ARMA(0, 1) ne prend en compte que que MA(1) donc on va regarder ce coefficient seulement. Or,  $\frac{|-0.7322|}{0.0447} \simeq 16.38 \ge 1.96 $. Donc l'ARMA(0, 1) est bien ajusté.
+L'ARMA(0, 1) ne prend en compte que que MA(1) donc on va regarder ce coefficient seulement. Or,  $\frac{|-0.7322|}{0.0447} \simeq 16.38 \ge 1.96$. Donc l'ARMA(0, 1) est bien ajusté.
 
 Nous allons maintenant vérifier si ces modèles sont susceptibles de présenter de l'autocorrélation (On prend $fitdf = p+q$).
 
