@@ -13,17 +13,17 @@ output:
 ### Téléchargement et formatage du fichier
 
 Définition de l'espace de travail puis téléchargement de la série.
-```{r}
+```{r, message=FALSE, warning=FALSE}
 rm(list = objects())
 
 # Xavier - Ordinateur ENSAE
 # path <- "W:/Bureau/S4_ENSAE/STL"     
 
 # Xavier - Ordinateur perso
-path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"  
+#path <- "D:/Etudes/ENSAE/S4/Séries temporelles linéaires/Projet"  
 
 # Kilian - Ordinateur perso
-#path <- "C:/Users/Kilian/Desktop/ENSAE/S4/LTS/Projet---S-rie-temporelle-lin-aire"
+path <- "C:/Users/Kilian/Desktop/ENSAE/S4/LTS/Projet---S-rie-temporelle-lin-aire"
 
 setwd(path)
 
@@ -55,7 +55,7 @@ if(covid_garde == FALSE){donnees_choco = donnees_choco[-c(363:length(donnees_cho
 ```
 
 Convertion en format zoo (Si besoin : "install.packages('zoo')" et "install.packages('tseries')")
-```{r}
+```{r, message=FALSE, warning=FALSE}
 require(zoo)
 require(tseries)
 
@@ -73,7 +73,7 @@ Voir rapport de projet.
 
 Vérifions qu'il n'y a pas de tendance linéaire.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 donnees_choco_reg <-  select(donnees_choco, "Indice")
 donnees_choco_reg["temps"] <-  0:(T-1)
@@ -188,9 +188,9 @@ L'ARMA(0, 1) ne prend en compte que que MA(1) donc on va regarder ce coefficient
 
 Nous allons maintenant vérifier si ces modèles sont susceptibles de présenter de l'autocorrélation (On prend $fitdf = p+q$).
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #install.packages("fUnitRoots")
-#require("fUnitRoots")
+require("fUnitRoots")
 ```
 
 Pour l'ARMA(1, 2) :
@@ -225,6 +225,12 @@ adj_r2(arima001)
 
 L'ARMA(1, 2) a le meilleur R² ajusté, c'est donc celui que nous sélectionnons.
 
+
+Moyenne temporelle de la série différenciée (choco2):
+```{r}
+mean(choco2)
+```
+
 ### Question 5
 
 On peut vérifier pour être sur que l'ARIMA(1, 1, 2) est meilleur que l'ARIMA(0, 1, 1).
@@ -238,3 +244,89 @@ adj_r2(arima011)
 ```
 
 ### Question 6
+
+Voir Rapport
+
+### Question 7
+
+On teste la normalité des résidus.
+
+```{r, message=FALSE, warning=FALSE}
+plot(arima112$residuals, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur des résidus", main = "Résidus du modèle ARIMA(1,1,2)")
+library(car)
+qqPlot(arima112$residuals, xlab ="Quantiles de la loi normale", ylab = "Quantiles de l'échatillon des résidus")
+```
+
+
+### Question 8
+
+On utilise la librairie "forecast" pour les prédictions, "dplyr", "ggplot2" et "reshape2" pour les représenter.
+```{r, message=FALSE, warning=FALSE}
+#install.packages("forecast")
+require(forecast)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+On effectue la prédiction pour deux périodes supplémentaires au seuil de 95%. On récupère la prédiction et les intervalles de confiance.
+
+```{r}
+pred_arima112=forecast(arima112,h=2,level=95)
+
+prediction = zoo(pred_arima112$mean)
+prediction_inf= zoo(pred_arima112$lower)
+prediction_sup= zoo(pred_arima112$upper)
+```
+
+Avant de tracer la prédiction avec ggplot, on prépare un tableau contenant une colonne avec les indices de la série et ses prédictions et d'autres colonnes avec les bornes des intervalles de confiance.
+
+```{r}
+#Tableau de la série
+SERIE <-  data.frame(choco)
+SERIE["Temps"] <-  as.numeric(rownames(SERIE))
+
+#Tableau des prédictions
+PREDICTIONS <-data.frame(prediction)
+PREDICTIONS["Temps"] <- as.numeric(rownames(PREDICTIONS))
+
+#Tableau avec série+prédictions
+PRED_SERIE = merge(x=SERIE, y=PREDICTIONS, by="Temps", all=TRUE)
+PRED_SERIE_MELTED <- melt(PRED_SERIE ,  id.vars = 'Temps', variable.name = 'series')
+
+#Tableau avec les intervalles de confiance
+CONFIANCE <- data.frame(prediction_inf, prediction_sup)
+CONFIANCE["Temps"] <- as.numeric(rownames(CONFIANCE))
+
+#Tableau final
+ALL <-  merge(x=PRED_SERIE_MELTED, y=CONFIANCE, by="Temps", all=TRUE)
+names(ALL) <- c("Temps", "series", "value", "inf", "sup")
+```
+
+On trace la série et ses prédictions avec ggplot, on utilise des barres d'erreur pour représenter l'intervalle de confiance.
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(ALL, aes(Temps, value)) + geom_line(aes(colour = series)) + geom_errorbar(aes(ymin = inf, ymax = sup), width = 0.5, color = "blue")
+```
+Les prédictions sont peu visibles car il y a trop de valeurs, on se concentre uniquement sur la fin de la série.
+
+```{r, message=FALSE, warning=FALSE}
+ALL_red <- ALL[ALL$Temps > 320, ]
+ggplot(ALL_red, aes(Temps, value)) + geom_line(aes(colour = series)) + geom_errorbar(aes(ymin = inf, ymax = sup), width = 0.7, color = "blue")
+```
+
+On trace l'ellipse correpsondant à la region de confiance trouvée en question 7. On utilise les equations paramétriques d'une ellipse.
+```{r}
+xc <- as.numeric(prediction[1]) # center x
+yc <- as.numeric(prediction[2]) # y
+a <- as.numeric(prediction_sup[1])-as.numeric(prediction[1]) # axe x
+b <- as.numeric(prediction_sup[2])-as.numeric(prediction[2]) # axe y
+
+t <- seq(0, 2*pi, 0.01) 
+x <- xc + a*cos(t) - b*sin(t)
+y <- yc + a*cos(t) + b*sin(t)
+x <- c(x,xc)
+y <- c(y,yc)
+plot(x,y,pch=19, col='blue')
+```
+
