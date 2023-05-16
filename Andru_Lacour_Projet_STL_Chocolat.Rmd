@@ -27,7 +27,8 @@ path <- "C:/Users/Kilian/Desktop/ENSAE/S4/LTS/Projet---S-rie-temporelle-lin-aire
 setwd(path)
 
 library(readr)
-donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", sep = ";", col.names = c("Periode", "Indice", "Code"))
+donnees_choco <- read.csv("valeurs_mensuelles_chocolat.csv", 
+                          sep = ";", col.names = c("Periode", "Indice", "Code"))
 ```
 
 On supprime les trois premieres lignes inutiles.
@@ -81,14 +82,14 @@ summary(lm(Indice~., data = donnees_choco_reg))
 
 
 
-```{r}
+```{r fig.asp = 0.5, fig.height = 8}
 acf(choco)
 pacf(choco)
 ```
 
 On remarque que la différence la plus présente est de 1. Donc on différentie à l'ordre 1.
 
-```{r}
+```{r fig.asp = 0.5, fig.height = 8}
 choco2 = diff(choco, 1)
 acf(choco2)
 pacf(choco2)
@@ -121,19 +122,21 @@ Qtests <- function(series, k, fitdf=0) {
 
 ### Question 3
 
-```{r}
+```{r fig.asp = 0.5, fig.height = 8}
 # Indice originel
-plot(choco, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", main = "Evolution de l'indice de production originel depuis 1990")
+plot(choco, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", 
+     main = "Evolution de l'indice de production originel depuis 1990")
 
 # Indice stationnarisé
 
-plot(choco2, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", main = "Evolution de l'indice de production stationnarisé depuis 1990")
+plot(choco2, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur mensuelle de l'indice", 
+     main = "Evolution de l'indice de production stationnarisé depuis 1990")
 
 ```
 
 ### Question 4
 
-```{r}
+```{r fig.asp = 0.5, fig.height = 8}
 acf(choco2)
 pacf(choco2)
 ```
@@ -250,10 +253,12 @@ Voir Rapport
 
 On teste la normalité des résidus.
 
-```{r, message=FALSE, warning=FALSE}
-plot(arima112$residuals, xaxt = "n", xlab ="Temps (en mois)", ylab = "Valeur des résidus", main = "Résidus du modèle ARIMA(1,1,2)")
+```{r, message=FALSE, warning=FALSE, fig.asp = 0.5, fig.height = 8}
+plot(arima112$residuals, xaxt = "n", xlab ="Temps (en mois)",
+     ylab = "Valeur des résidus", main = "Résidus du modèle ARIMA(1,1,2)")
 library(car)
-qqPlot(arima112$residuals, xlab ="Quantiles de la loi normale", ylab = "Quantiles de l'échatillon des résidus")
+qqPlot(arima112$residuals, xlab ="Quantiles de la loi normale",
+       ylab = "Quantiles de l'échatillon des résidus")
 ```
 
 
@@ -304,18 +309,24 @@ names(ALL) <- c("Temps", "series", "value", "inf", "sup")
 
 On trace la série et ses prédictions avec ggplot, on utilise des barres d'erreur pour représenter l'intervalle de confiance.
 
-```{r, message=FALSE, warning=FALSE}
-ggplot(ALL, aes(Temps, value)) + geom_line(aes(colour = series)) + geom_errorbar(aes(ymin = inf, ymax = sup), width = 0.5, color = "blue")
+```{r, message=FALSE, warning=FALSE, fig.asp = 0.4, fig.height = 8}
+ggplot(ALL, aes(Temps, value)) +
+  geom_line(aes(colour =series)) + 
+  geom_errorbar(aes(ymin = inf, ymax = sup), 
+                width = 0.5, color = "blue")
 ```
 Les prédictions sont peu visibles car il y a trop de valeurs, on se concentre uniquement sur la fin de la série.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.asp = 0.4, fig.height = 8}
 ALL_red <- ALL[ALL$Temps > 320, ]
-ggplot(ALL_red, aes(Temps, value)) + geom_line(aes(colour = series)) + geom_errorbar(aes(ymin = inf, ymax = sup), width = 0.7, color = "blue")
+ggplot(ALL_red, aes(Temps, value)) +
+  geom_line(aes(colour =series)) + 
+  geom_errorbar(aes(ymin = inf, ymax = sup),
+                width = 0.7, color = "blue")
 ```
 
 On trace l'ellipse correpsondant à la region de confiance trouvée en question 7. On utilise les equations paramétriques d'une ellipse.
-```{r}
+```{r fig.asp = 0.5, fig.height = 8}
 xc <- as.numeric(prediction[1]) # center x
 yc <- as.numeric(prediction[2]) # y
 a <- as.numeric(prediction_sup[1])-as.numeric(prediction[1]) # axe x
